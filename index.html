@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>object detection - A-Frame AR</title>
+    <meta name="description" content="object detection - A-Frame AR">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
+    <script src="./js/three.ar.js"></script>
+    <script src="./js/aframe-ar.min.js"></script>
+    <script src="./js/shake.js"></script>
+    <style>
+      .info {
+        position: absolute;
+        height: 25px;
+        width: 100vw;
+        top: 0px;
+        left: 0px;
+        text-align: center;
+        vertical-align: middle;
+        z-index: 999;
+        background-color: gray;
+        color: white;
+      }
+      .inference-canvas {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 10px;
+        z-index: -1;
+        visibility: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <a-scene id="scene" ar>
+      <a-assets>
+        <a-mixin id="text" text="width:1; lineHeight:50; letterSpacing:5; color:blue; side:double; align:center; wrapCount:10"></a-mixin>
+        <a-mixin id="textAnime" attribute="rotation" to="0 360 0" dur="5000" easing="linear" repeat="undifinite"></a-mixin>
+      </a-assets>
+
+      <a-entity id="textGroup"></a-entity>
+      <a-entity id="raycaster" ar-raycaster raycaster="objects:none"></a-entity>
+      <a-ring id="mark" rotation="-90 0 0" radius-inner="0.01" radius-outer="0.02" material="side: double"></a-ring>
+    </a-scene>
+    <canvas id="inference-canvas" class="inference-canvas"></canvas>
+    <div id="info" class="info">infomation.</div>
+  </body>
+
+  <script src="./dist/bundle.js"></script>
+  <script>
+    var ar_raycaster = document.querySelector('#raycaster');
+    var ar_marker = document.querySelector('#mark');
+
+    ar_raycaster.addEventListener('raycaster-intersection', function(evt) {
+      // リングの位置を更新する。
+      var pos = evt.detail.intersections[0].point;
+      ar_marker.setAttribute('color', 'green');
+      ar_marker.setAttribute('position', pos);
+    });
+
+    ar_raycaster.addEventListener('raycaster-intersection-cleared', function (evt) {
+        // Turn the mark red.  FIXME: lerp position
+      ar_marker.setAttribute('color', 'red');
+    });
+
+    // Shakeイベントの追加
+    var myShakeEvent = new Shake({
+      threshold: 15 // optional shake strength threshold
+    });
+    myShakeEvent.start();
+    window.addEventListener('shake', shakeEventDidOccur, false);
+    //function to call when shake occurs
+    function shakeEventDidOccur () {
+      let textGroup = document.getElementById("textGroup");
+      while (textGroup.firstChild) {
+        textGroup.removeChild(textGroup.firstChild);
+      }
+      info.innerHTML = "information.";
+    }
+  </script>
+</html>
