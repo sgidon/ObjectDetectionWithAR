@@ -32,6 +32,14 @@
         z-index: -1;
         visibility: hidden;
       }
+      .od-img {
+        position: absolute;
+        bottom: 2px;
+        left: 2px;
+        width: 100px;
+        height: 100px;
+        z-index: 100;
+      }
     </style>
   </head>
   <body>
@@ -46,6 +54,7 @@
       <a-ring id="mark" rotation="-90 0 0" radius-inner="0.01" radius-outer="0.02" material="side: double"></a-ring>
     </a-scene>
     <canvas id="inference-canvas" class="inference-canvas"></canvas>
+    <img id="od-img" class="od-img">
     <div id="info" class="info">infomation.</div>
   </body>
 

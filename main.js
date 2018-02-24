@@ -20,11 +20,11 @@ const arMark = document.getElementById('mark');
 const arInfo = document.getElementById("info");
 const arScene = document.getElementById("scene");
 const textGrp = document.getElementById("textGroup");
-const arCanvas = arScene.canvas;
 
 const resizeCanvas = document.createElement("canvas");
 resizeCanvas.width = IMG_LEN;
 resizeCanvas.height = IMG_LEN;
+const odImg = document.getElementById("od-img");
 
 async function ready() {
   inferenceCanvas = document.getElementById('inference-canvas');
@@ -48,28 +48,44 @@ window.addEventListener('click', (env) => {
     return;
   }
 
+  // 検知中はマーカーとAR表示は非表示とする。
+  arMark.object3D.visible = false;
+  textGrp.object3D.visible = false;
   arInfo.innerHTML = "検知中...";
 
-  // CanvasをリサイズしてべつCanvasへ出力する。
-  const SCALE = arCanvas.width > arCanvas.height
-    ? arCanvas.height / IMG_LEN | 0
-    : arCanvas.width / IMG_LEN | 0;
-  const startW = (arCanvas.width - IMG_LEN) / 2 | 0;
-  const startH = (arCanvas.height - IMG_LEN) / 2 | 0;
-  const ctx = resizeCanvas.getContext('2d');
-  ctx.drawImage(arCanvas, startW, startH, IMG_LEN * SCALE, IMG_LEN * SCALE
-    , 0, 0, IMG_LEN, IMG_LEN);
-  
-  // 検知処理実行
-  detection();
+  setTimeout(() => {
 
-}, false);
+    // Canvasをリサイズして別Canvasへ出力する。
+    const arCanvas = arScene.canvas;
+    const SCALE = arCanvas.width > arCanvas.height
+      ? arCanvas.height / IMG_LEN | 0
+      : arCanvas.width / IMG_LEN | 0;
+    const startW = (arCanvas.width - IMG_LEN * SCALE) / 2 | 0;
+    const startH = (arCanvas.height - IMG_LEN * SCALE) / 2 | 0;
+    const ctx = resizeCanvas.getContext('2d');
+    ctx.drawImage(arCanvas, startW, startH, IMG_LEN * SCALE, IMG_LEN * SCALE
+      , 0, 0, IMG_LEN, IMG_LEN);
+  
+    // 検知処理実行
+    detection();
+  
+    // 検知処理後はマーカーとAR表示を表示する。
+    arMark.object3D.visible = true;
+    textGrp.object3D.visible = true;
+
+    // 検知に使用した画像を表示
+    odImg.src = resizeCanvas.toDataURL("image/png");
+
+  }, 100);
+
+ }, false);
 
 function detection() {
 
   math.scope(async () => {
+    // 物体検知処理実行
     const startTime = performance.now();
-    const pos = arMark.getAttribute("position");
+    const pos = arMark.getAttribute("position").clone();
     const image = dl.fromPixels(resizeCanvas, 3);
     const inferenceResult =
       squeezeNet.predictWithActivation(image, 'conv10');
